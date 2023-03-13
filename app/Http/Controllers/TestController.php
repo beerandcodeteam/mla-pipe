@@ -6,6 +6,6 @@ class TestController
 {
     public function index(): string
     {
-        return 'test';
+        return dd('test');
     }
 }
