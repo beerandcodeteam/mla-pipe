@@ -4,8 +4,8 @@ namespace App\Http\Controllers;
 
 class TestController
 {
-    public function index(): string
+    public function index()
     {
-        return dd('test');
+        dd('test');
     }
 }
