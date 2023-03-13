@@ -1,0 +1,106 @@
+name: CI
+
+on:
+  pull_request:
+    paths-ignore:
+      - '**.md'
+      - '**.gitignore'
+      - '**.env.example'
+      - 'sail'
+
+jobs:
+  linter:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-20.04]
+        php: ['8.2']
+        dependency-version: [prefer-stable]
+    name: PHP Linter
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          extensions: mbstring, dom, fileinfo
+          tools: composer:v2
+          coverage: xdebug
+
+      - name: Install PHP dependencies
+        run: composer update --${{ matrix.dependency-version }} --prefer-dist --no-interaction --no-suggest
+
+      - name: Execute linter
+        run: |
+          composer run lint:test
+  static_analysis:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-20.04]
+        php: ['8.2']
+        dependency-version: [prefer-stable]
+    name: Static Analysis
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          extensions: mbstring, dom, fileinfo
+          tools: composer:v2
+          coverage: xdebug
+
+      - name: Install PHP dependencies
+        run: composer update --${{ matrix.dependency-version }} --prefer-dist --no-interaction --no-suggest
+
+      - name: Run static analysis
+        run: |
+          composer run analyse
+  tests:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-20.04]
+        php: ['8.2']
+        dependency-version: [prefer-stable]
+    name: Tests with PHP ${{ matrix.php }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          extensions: mbstring, dom, fileinfo
+          tools: composer:v2
+          coverage: xdebug
+
+      - name: Install PHP dependencies
+        run: composer update --${{ matrix.dependency-version }} --prefer-dist --no-interaction --no-suggest
+
+      - name: Configure Laravel application
+        run: |
+          cp .env.example .env
+          source .env
+
+      - name: Running tests
+        run: |
+          vendor/bin/pest --ci --colors=always --coverage-clover=clover.xml --parallel
+
+      - uses: actions/upload-artifact@v2
+        with:
+          name: test-coverage
+          path: clover.xml
+          retention-days: 1
