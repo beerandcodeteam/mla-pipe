@@ -1,12 +1,11 @@
 name: CI
 
 on:
-  pull_request:
-    paths-ignore:
-      - '**.md'
-      - '**.gitignore'
-      - '**.env.example'
-      - 'sail'
+  push:
+    branches: [ main ]
+
+  repository_dispatch:
+    types: [ webhook ]
 
 jobs:
   linter:
